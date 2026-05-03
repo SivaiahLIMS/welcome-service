@@ -1,0 +1,30 @@
+steps:
+  - name: 'gcr.io/cloud-builders/mvn'
+    args: ['clean', 'package', '-DskipTests']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-southeast1-docker.pkg.dev/surya-welcome-demo-2026/welcome-repo/welcome:$COMMIT_SHA'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'asia-southeast1-docker.pkg.dev/surya-welcome-demo-2026/welcome-repo/welcome:$COMMIT_SHA'
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'welcome-service'
+      - '--image'
+      - 'asia-southeast1-docker.pkg.dev/surya-welcome-demo-2026/welcome-repo/welcome:$COMMIT_SHA'
+      - '--region'
+      - 'asia-southeast1'
+      - '--allow-unauthenticated'
+
+images:
+  - 'asia-southeast1-docker.pkg.dev/surya-welcome-demo-2026/welcome-repo/welcome:$COMMIT_SHA'
